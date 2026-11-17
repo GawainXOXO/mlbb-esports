@@ -1,0 +1,56 @@
+# Uji SERVER. Terpisah dari uji lokal: memakai database postgres sementara milik CI
+# (dibuang setelah job selesai), tidak pernah database lokal atau produksi.
+# Tidak ada rahasia di berkas ini; bila nanti perlu, pakai ${{ secrets.NAMA }}.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Pindai rahasia (gitleaks)
+        run: |
+          docker run --rm -v "$PWD:/repo" ghcr.io/gitleaks/gitleaks:v8.30.1 \
+            git /repo --config /repo/.gitleaks.toml --redact --verbose
+
+  check:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: mlbb
+          POSTGRES_PASSWORD: mlbb
+          POSTGRES_DB: mlbb_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U mlbb -d mlbb_test"
+          --health-interval 5s --health-timeout 3s --health-retries 10
+    env:
+      TZ: UTC
+      TEST_DATABASE_URL: postgres://mlbb:mlbb@localhost:5432/mlbb_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm biome ci .
+      - run: pnpm typecheck
+      - run: pnpm test:ci
+      - run: pnpm build

@@ -1,0 +1,11 @@
+{
+  "name": "mlbb",
+  "dockerComposeFile": ["../compose.yaml"],
+  "service": "web",
+  "workspaceFolder": "/app",
+  "customizations": {
+    "vscode": {
+      "extensions": ["biomejs.biome", "ms-azuretools.vscode-docker", "bradlc.vscode-tailwindcss"]
+    }
+  }
+}

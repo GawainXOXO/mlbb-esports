@@ -1,0 +1,10 @@
+# Pemindai rahasia. Kredensial dev lokal mlbb:mlbb (database kontainer sekali pakai,
+# tidak bisa diakses dari luar laptop) sengaja diizinkan. Selain itu, semua temuan menggagalkan CI.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Kredensial database dev lokal dan CI yang sekali pakai"
+regexes = [
+  '''postgres://mlbb:mlbb@(localhost|db|127\.0\.0\.1):\d+/mlbb(_test)?''',
+]

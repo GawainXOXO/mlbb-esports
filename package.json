@@ -1,0 +1,49 @@
+{
+  "name": "mlbb-esports",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@12.21.0",
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "biome check .",
+    "format": "biome format --write .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:local": "TEST_ENV=local vitest run",
+    "test:ci": "TEST_ENV=ci vitest run",
+    "test:e2e": "playwright test",
+    "db:generate": "drizzle-kit generate --custom",
+    "db:migrate": "tsx scripts/migrate.ts",
+    "db:pull": "drizzle-kit pull --config=drizzle.pull.config.ts && tsx scripts/move-pulled-schema.ts",
+    "db:seed": "tsx scripts/seed.ts",
+    "ingest": "tsx scripts/ingest.ts"
+  },
+  "dependencies": {
+    "drizzle-orm": "0.45.4",
+    "next": "16.4.6",
+    "pg": "^8.23.1",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "server-only": "^0.0.1"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.6.8",
+    "@playwright/test": "1.65.1",
+    "@tailwindcss/postcss": "^4.3.5",
+    "@types/node": "^24",
+    "@types/pg": "^8.23.1",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19",
+    "drizzle-kit": "0.31.11",
+    "tailwindcss": "^4.3.5",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vitest": "^5.1.0"
+  }
+}

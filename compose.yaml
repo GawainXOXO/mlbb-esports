@@ -1,0 +1,75 @@
+# Lingkungan LOKAL saja. CI di server tidak memakai berkas ini (lihat .github/workflows/ci.yml).
+# Satu perintah: `docker compose up` menyalakan db, menjalankan migrasi + seed, lalu web.
+name: mlbb
+
+# Di dalam Compose, database selalu di db:5432. Menimpa nilai localhost:5433 dari .env.
+x-db-env: &db-env
+  DATABASE_URL: postgres://mlbb:mlbb@db:5432/mlbb
+  DATABASE_URL_DIRECT: postgres://mlbb:mlbb@db:5432/mlbb
+  TEST_DATABASE_URL: postgres://mlbb:mlbb@db:5432/mlbb_test
+
+x-app: &app
+  build: { context: ., target: dev }
+  env_file:
+    - path: .env
+      required: false
+  volumes:
+    - .:/app
+    - /app/node_modules
+  depends_on:
+    db: { condition: service_healthy }
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: mlbb
+      POSTGRES_PASSWORD: mlbb
+      POSTGRES_DB: mlbb
+      TZ: UTC
+    ports: ["${DB_HOST_PORT:-5433}:5432"]
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./docker/db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mlbb -d mlbb"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  migrate:
+    <<: *app
+    environment: *db-env
+    command: sh -c "pnpm db:migrate && pnpm db:seed"
+
+  web:
+    <<: *app
+    environment:
+      <<: *db-env
+      WATCHPACK_POLLING: "true"
+      CHOKIDAR_USEPOLLING: "true"
+    ports: ["${WEB_HOST_PORT:-3000}:3000"]
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      db: { condition: service_healthy }
+      migrate: { condition: service_completed_successfully }
+
+  # Uji LOKAL: memakai database mlbb_test di kontainer db, tidak pernah mlbb atau produksi.
+  # docker compose run --rm test
+  test:
+    <<: *app
+    profiles: [tools]
+    environment: *db-env
+    command: pnpm test:local
+
+  jobs:
+    <<: *app
+    profiles: [tools]
+    environment: *db-env
+    command: pnpm ingest
+
+volumes:
+  pgdata:
