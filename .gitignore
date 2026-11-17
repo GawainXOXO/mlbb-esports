@@ -12,6 +12,9 @@ next-env.d.ts
 !.env.example
 .DS_Store
 
+# Respons Rone yang disimpan untuk diimpor: data lokal, tidak masuk repo.
+data/
+
 # Repo publik: ikon, logo, dan aset Moonton TIDAK BOLEH masuk git (spesifikasi 2.11).
 public/img/*
 !public/img/.gitkeep

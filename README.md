@@ -33,6 +33,24 @@ Setelah `package.json` berubah: `docker compose build` lalu `docker compose up -
 Melihat data dengan pgAdmin atau `psql`: sambung ke `localhost:5433`, database `mlbb`, pengguna `mlbb`.
 PostgreSQL native di port 5432 tidak dipakai dan tidak disentuh proyek ini.
 
+## Data dari Rone Arena
+
+Sinkronisasi selalu dipicu manual, tidak ada job terjadwal.
+
+1. Buka <http://localhost:3000/admin/rone> (hanya di mesin dev, `DEV_ADMIN_BYPASS=true`).
+2. Klik **Tarik jadwal musim reguler** dan **Tarik jadwal playoff**.
+3. Klik **Tarik** pada seri yang belum punya detail game. Satu klik satu permintaan.
+
+Aturan tarikan: jeda minimal 2 detik, endpoint yang sama dalam 5 menit memakai respons tersimpan, dan
+tombol mati bila `RONE_MANUAL_PULL` bukan `on` serta selalu mati di produksi sampai login admin selesai.
+robots.txt Rone melarang akses otomatis ke `/api/`, jadi pemakaian rutin perlu izin pengelola Rone.
+
+Cadangan tanpa tombol: simpan respons dari browser sebagai `.json`, lalu unggah di halaman admin atau
+taruh di folder `data/rone/` (diabaikan git) dan jalankan
+`docker compose run --rm test pnpm ingest import data/rone --create-unknown-players`.
+
+Setiap respons mentah disimpan di `ingest_log` dan bisa diolah ulang dengan `pnpm ingest replay <id>`.
+
 ## Uji lokal dan uji server terpisah
 
 |             | Uji lokal                                          | Uji server (CI)                                      |
@@ -80,7 +98,7 @@ tests/          unit, integration, e2e
 ## Status
 
 - M0 Fondasi: berjalan lokal lewat Docker, skema v2 termigrasi, CI disiapkan. Deploy ke internet menyusul.
-- M1: penarikan data otomatis dari Rone Arena.
+- M1 Data masuk: sinkronisasi manual dari Rone Arena, halaman jadwal, hasil, dan detail match.
 
 ## Tech stack
 
