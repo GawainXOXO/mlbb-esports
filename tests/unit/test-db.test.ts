@@ -1,4 +1,4 @@
-﻿import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { resolveTestDatabase } from "../setup/test-db";
 
 const local = (url: string, extra: Record<string, string> = {}) =>

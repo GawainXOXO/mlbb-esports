@@ -14,7 +14,7 @@ export function manualPullEnabled(env: NodeJS.ProcessEnv = process.env): boolean
   return env.RONE_MANUAL_PULL === "on" && env.NODE_ENV !== "production";
 }
 
-function minIntervalMs(env: NodeJS.ProcessEnv = process.env): number {
+export function minIntervalMs(env: NodeJS.ProcessEnv = process.env): number {
   const value = Number(env.RONE_MIN_INTERVAL_MS ?? 2000);
   return Number.isFinite(value) && value >= 2000 ? value : 2000;
 }

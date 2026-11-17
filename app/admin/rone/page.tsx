@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ActionForm } from "@/components/admin/ActionForm";
+import { PullAllQueue } from "@/components/admin/PullAllQueue";
 import { isAdmin } from "@/lib/admin";
 import { getPool } from "@/lib/db";
 import { manualPullEnabled } from "@/lib/ingest/pull";
@@ -71,7 +72,7 @@ export default async function AdminRonePage() {
        JOIN data_source d ON d.id = e.source_id AND d.code = 'rone'
        JOIN team ta ON ta.id = s.team_a_id JOIN team tb ON tb.id = s.team_b_id
        WHERE s.status = 'finished' AND NOT EXISTS (SELECT 1 FROM game g WHERE g.series_id = s.id)
-       ORDER BY s.start_at DESC LIMIT 20`,
+       ORDER BY s.start_at DESC LIMIT 200`,
     ),
     pool.query<{
       id: string;
@@ -121,10 +122,15 @@ export default async function AdminRonePage() {
           </label>
         </ActionForm>
         {pending.rows.length > 0 && (
-          <div>
-            <p className="mb-1 text-xs text-muted">Seri selesai yang belum punya detail game:</p>
+          <div className="space-y-2">
+            {enabled && (
+              <PullAllQueue matchIds={pending.rows.map((s) => s.external_id)} action={pullAction} />
+            )}
+            <p className="mb-1 text-xs text-muted">
+              Seri selesai yang belum punya detail game ({pending.rows.length}):
+            </p>
             <ul className="divide-y divide-line">
-              {pending.rows.map((s) => (
+              {pending.rows.slice(0, 20).map((s) => (
                 <li key={s.external_id} className="flex items-start justify-between gap-3 py-1.5">
                   <span>
                     {s.label} <span className="text-xs text-muted">#{s.external_id}</span>

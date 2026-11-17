@@ -48,6 +48,9 @@ services:
       <<: *db-env
       WATCHPACK_POLLING: "true"
       CHOKIDAR_USEPOLLING: "true"
+    # Repo di drive C: (bukan WSL): Turbopack tidak melihat perubahan berkas lewat bind mount,
+    # jadi dev memakai webpack dengan polling supaya halaman ikut berubah saat kode disunting.
+    command: ["pnpm", "dev", "--hostname", "0.0.0.0", "--webpack"]
     ports: ["${WEB_HOST_PORT:-3000}:3000"]
     volumes:
       - .:/app
